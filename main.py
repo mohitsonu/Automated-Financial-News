@@ -1,83 +1,116 @@
-from flask import Flask, jsonify
 import feedparser
 import requests
 from urllib.parse import quote_plus
+from datetime import datetime
+import pytz
 import os
 
-app = Flask(__name__)
-
 # ---------- CONFIG ----------
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8379848942:AAE09WVTLDwa85CYSl5BvEGtYhyB4QTGYhU")
-CHAT_ID = os.getenv("CHAT_ID", "-1002904181387")
-STOCKS = ["Saatvik Green Energy", "Avantel", "Suzlon", "IOB Bank", "Eternal"]
-TOPICS = ["Stock Market", "World Market", "Results", "Political", "Geopolitical", "Sector", "Economy"]
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+
+STOCKS = [
+    "Saatvik Green Energy",
+    "Avantel",
+    "Suzlon",
+    "IOB Bank",
+    "Eternal"
+]
+
+TOPICS = [
+    "Stock Market",
+    "World Market",
+    "Results",
+    "Political",
+    "Geopolitical",
+    "Sector",
+    "Economy"
+]
+
+# ---------- EMOJIS FOR SECTIONS ----------
+SECTION_EMOJIS = {
+    "Stock Market": "💹",
+    "World Market": "🌎",
+    "Results": "📝",
+    "Political": "🏛️",
+    "Geopolitical": "🗺️",
+    "Sector": "🏢",
+    "Economy": "📊"
+}
 
 # ---------- HELPERS ----------
 def shorten_url(url):
     """Shorten URLs using TinyURL API"""
     try:
-        resp = requests.get(f"http://tinyurl.com/api-create.php?url={url}")
+        resp = requests.get(f"http://tinyurl.com/api-create.php?url={url}", timeout=10)
         if resp.ok:
             return resp.text
-        return url
-    except:
-        return url
+    except Exception:
+        pass
+    return url
+
+
+def format_pub_date(entry):
+    """Convert entry.published to readable IST format"""
+    try:
+        utc_time = datetime(*entry.published_parsed[:6])
+        ist = pytz.timezone("Asia/Kolkata")
+        return utc_time.astimezone(ist).strftime("%d-%m-%Y %I:%M %p")
+    except Exception:
+        return "Unknown time"
+
 
 def fetch_news(term, top_n=3):
-    """Fetch top N news headlines for a given search term"""
+    """Fetch top N latest Google News headlines"""
     encoded_term = quote_plus(term)
     url = f"https://news.google.com/rss/search?q={encoded_term}+site:moneycontrol.com+OR+site:economictimes.indiatimes.com+OR+site:business-standard.com"
     feed = feedparser.parse(url)
-    news_list = []
-    for entry in feed.entries[:top_n]:
+    news_items = []
+
+    for i, entry in enumerate(feed.entries[:top_n]):
         title = entry.title
         link = shorten_url(entry.link)
-        news_list.append(f"• {title}\n{link}")
-    return news_list
+        source = entry.get("source", {}).get("title", "")
+        published = format_pub_date(entry)
+        news_items.append(f"{i+1}️⃣ {title} — {source or entry.link.split('/')[2]}\n_Read more:_ {link}\n🕒 Published: {published}\n")
+
+    return news_items
+
 
 def send_telegram_message(message):
-    """Send message to Telegram group with previews enabled"""
+    """Send formatted message to Telegram"""
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    data = {
+    payload = {
         "chat_id": CHAT_ID,
         "text": message,
         "parse_mode": "HTML",
         "disable_web_page_preview": False
     }
-    resp = requests.post(url, data=data)
-    return resp.status_code, resp.text
-
-# ---------- ROUTES ----------
-@app.route('/')
-def home():
-    return "✅ Automated Financial News Bot is Live on Render!"
-
-@app.route('/fetch_news')
-def fetch_and_send_news():
-    final_message = ""
-    for term in STOCKS + TOPICS:
-        news = fetch_news(term)
-        if news:
-            final_message += f"📰 <b>{term.upper()}</b> — Top news:\n" + "\n".join(news) + "\n\n"
+    try:
+        r = requests.post(url, data=payload, timeout=10)
+        if r.ok:
+            print("✅ Message sent successfully!")
         else:
-            final_message += f"⚠️ <b>{term.upper()}</b>: No news found\n\n"
+            print(f"⚠️ Telegram error: {r.json()}")
+    except Exception as e:
+        print(f"⚠️ Send error: {e}")
 
-    MAX_LEN = 4000
-    for i in range(0, len(final_message), MAX_LEN):
-        chunk = final_message[i:i+MAX_LEN]
-        status, resp_text = send_telegram_message(chunk)
-        print(f"Sent chunk ({status}): {resp_text}")
 
-    return jsonify({"status": "success", "message": "News sent to Telegram"})
+# ---------- MAIN ----------
+def main():
+    print("🚀 Fetching live financial news...\n")
 
-@app.route('/test_telegram')
-def test_telegram():
-    """Send a simple test message to verify Telegram connection"""
-    msg = "🚀 Test message from Render deployed Financial News Bot!"
-    status, resp = send_telegram_message(msg)
-    return jsonify({"status": status, "response": resp})
+    for topic in STOCKS + TOPICS:
+        emoji = SECTION_EMOJIS.get(topic, "📰")
+        news_list = fetch_news(topic)
+        if news_list:
+            header = f"{emoji} <b>{topic.upper()}</b> — Top 3 News\n"
+            message = header + "\n".join(news_list)
+        else:
+            message = f"⚠️ No recent news found for <b>{topic.upper()}</b>\n"
 
-# ---------- ENTRY POINT ----------
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+        send_telegram_message(message)
+
+
+if __name__ == "__main__":
+    main()
