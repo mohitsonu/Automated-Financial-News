@@ -1,28 +1,31 @@
-name: Automated Financial News Bot 📰
+name: Automated Financial News Bot
 
 on:
   schedule:
-    - cron: "2 * * * *"  # every hour
-  workflow_dispatch:      # manual trigger
+    # Every hour
+    - cron: '0 * * * *'
+  workflow_dispatch: # allows manual run from GitHub Actions tab
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: 🐍 Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: "3.12"
+          python-version: 3.12
 
-      - name: 📦 Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: 🚀 Run news bot
+      - name: Run bot
+        run: python main.py
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python main.py
