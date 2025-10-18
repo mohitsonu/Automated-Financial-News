@@ -2,32 +2,26 @@ import feedparser
 from urllib.parse import quote_plus
 import requests
 from datetime import datetime
-import time
 from flask import Flask
 import re
-import threading
-import os
 
 # ------------------ Configuration ------------------
-BOT_TOKEN = os.environ.get("BOT_TOKEN")  # set as Render environment variable
-CHAT_ID = os.environ.get("CHAT_ID")      # set as Render environment variable
+BOT_TOKEN = "YOUR_BOT_TOKEN_HERE"
+CHAT_ID = "YOUR_CHAT_ID_HERE"
 stocks = ["Reliance", "IRFC", "IRCTC", "Suzlon", "IOB Bank", "Eternal"]
 topics = ["Stock Market", "World Market", "Results", "Political", "Geopolitical", "Sector", "Economy"]
-TOP_N = 3  # top 3 news
-UPDATE_INTERVAL = 60*60  # 1 hour
+TOP_N = 3
 
 app = Flask(__name__)
 
-# ------------------ Helper Functions ------------------
+# ------------------ Helpers ------------------
 def escape_markdown(text):
-    """Escape characters for Telegram MarkdownV2"""
     escape_chars = r'\_*[]()~`>#+-=|{}.!'
     return re.sub(r'([{}])'.format(re.escape(escape_chars)), r'\\\1', text)
 
 def shorten_url(url):
-    """Use tinyurl.com to shorten URLs"""
     try:
-        resp = requests.get(f"http://tinyurl.com/api-create.php?url={url}", timeout=5)
+        resp = requests.get(f"http://tinyurl.com/api-create.php?url={url}")
         if resp.status_code == 200:
             return resp.text
     except:
@@ -35,7 +29,6 @@ def shorten_url(url):
     return url
 
 def fetch_news_for_term(term):
-    """Fetch top N news for a single stock/topic"""
     encoded_term = quote_plus(term)
     url = f"https://news.google.com/rss/search?q={encoded_term}+site:moneycontrol.com+OR+site:economictimes.indiatimes.com+OR+site:business-standard.com"
     feed = feedparser.parse(url)
@@ -47,13 +40,11 @@ def fetch_news_for_term(term):
         title = escape_markdown(entry.title)
         source = escape_markdown(entry.get("source", {}).get("title", ""))
         link = shorten_url(entry.link)
-        published = entry.get("published", "")
-        try:
+        published_str = ""
+        if entry.get("published_parsed"):
             published_dt = datetime(*entry.published_parsed[:6])
             published_str = published_dt.strftime("%d-%m-%Y %I:%M %p")
-        except:
-            published_str = ""
-        message_lines.append(f"{i}️⃣ {title} — {source} — [Read more]({link})")
+        message_lines.append(f"{i}️⃣ *{title}* — _{source}_\n🔗 [Read more]({link})")
         if published_str:
             message_lines.append(f"   ⏰ Published: {published_str}")
     now = datetime.now().strftime("%d-%m-%Y %I:%M %p")
@@ -61,7 +52,6 @@ def fetch_news_for_term(term):
     return "\n".join(message_lines)
 
 def send_to_telegram(message):
-    """Send one message to Telegram"""
     try:
         resp = requests.post(
             f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
@@ -70,8 +60,7 @@ def send_to_telegram(message):
                 "text": message,
                 "parse_mode": "MarkdownV2",
                 "disable_web_page_preview": False
-            },
-            timeout=10
+            }
         )
         if resp.status_code == 200:
             print("✅ Telegram message sent successfully!")
@@ -80,29 +69,19 @@ def send_to_telegram(message):
     except Exception as e:
         print(f"⚠️ Exception sending to Telegram: {e}")
 
-# ------------------ Main Loop ------------------
-def run_bot():
-    while True:
-        print("🕒 Fetching live headlines from Google News...")
-        for term in stocks + topics:
-            message = fetch_news_for_term(term)
-            if message:
-                send_to_telegram(message)
-                time.sleep(2)  # slight delay between messages
-        print(f"⏳ Waiting {UPDATE_INTERVAL/60} minutes for next update...\n")
-        time.sleep(UPDATE_INTERVAL)
-
-# ------------------ Flask Routes ------------------
+# ------------------ Routes ------------------
 @app.route('/')
 def home():
     return "IKT News Bot is running! 🚀"
 
-@app.route('/run')
-def run():
-    thread = threading.Thread(target=run_bot)
-    thread.start()
-    return "Bot started! Fetching news every hour. 🕒"
+@app.route('/fetch_news')
+def fetch_news_route():
+    for term in stocks + topics:
+        message = fetch_news_for_term(term)
+        if message:
+            send_to_telegram(message)
+    return "✅ News sent to Telegram!"
 
 # ------------------ Entry ------------------
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+    app.run(host='0.0.0.0', port=10000)
