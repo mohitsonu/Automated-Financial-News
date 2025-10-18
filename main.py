@@ -1,117 +1,75 @@
 import feedparser
 import requests
 from urllib.parse import quote_plus
+import time
 from datetime import datetime
-import pytz
-import os
 
 # ---------- CONFIG ----------
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+BOT_TOKEN = "YOUR_BOT_TOKEN"
+CHAT_ID = "YOUR_CHAT_ID"
+STOCKS = ["Reliance", "Suzlon", "IOB Bank", "Eternal"]
+TOPICS = ["Stock Market", "World Market", "Results", "Political", "Geopolitical", "Sector", "Economy"]
+UPDATE_INTERVAL = 3600  # 1 hour in seconds
+TOP_N = 3  # Top 3 news per stock/topic
+MESSAGE_GAP = 30  # seconds between messages
 
-STOCKS = [
-    "Saatvik Green Energy",
-    "Avantel",
-    "Suzlon",
-    "IOB Bank",
-    "Eternal"
-]
-
-TOPICS = [
-    "Stock Market",
-    "World Market",
-    "Results",
-    "Political",
-    "Geopolitical",
-    "Sector",
-    "Economy"
-]
-
-# ---------- EMOJIS FOR SECTIONS ----------
-SECTION_EMOJIS = {
-    "Stock Market": "💹",
-    "World Market": "🌎",
-    "Results": "📝",
-    "Political": "🏛️",
-    "Geopolitical": "🗺️",
-    "Sector": "🏢",
-    "Economy": "📊"
+# Emoji headings for topics
+EMOJI_HEADINGS = {
+    "Stock Market": "📈 STOCK MARKET",
+    "World Market": "🌎 WORLD MARKET",
+    "Results": "📝 RESULTS",
+    "Political": "🏛️ POLITICAL",
+    "Geopolitical": "🗺️ GEOPOLITICAL",
+    "Sector": "🏢 SECTOR",
+    "Economy": "💹 ECONOMY"
 }
 
-# ---------- HELPERS ----------
+# ---------- FUNCTIONS ----------
 def shorten_url(url):
     """Shorten URLs using TinyURL API"""
     try:
-        resp = requests.get(f"http://tinyurl.com/api-create.php?url={url}", timeout=10)
+        resp = requests.get(f"http://tinyurl.com/api-create.php?url={url}")
         if resp.ok:
             return resp.text
-    except Exception:
-        pass
-    return url
+        return url
+    except:
+        return url
 
-
-def format_pub_date(entry):
-    """Convert entry.published to readable IST format"""
-    try:
-        utc_time = datetime(*entry.published_parsed[:6])
-        ist = pytz.timezone("Asia/Kolkata")
-        return utc_time.astimezone(ist).strftime("%d-%m-%Y %I:%M %p")
-    except Exception:
-        return "Unknown time"
-
-
-def fetch_news(term, top_n=3):
-    """Fetch top N latest Google News headlines"""
+def fetch_news(term, top_n=TOP_N):
+    """Fetch top N news headlines for a given search term"""
     encoded_term = quote_plus(term)
     url = f"https://news.google.com/rss/search?q={encoded_term}+site:moneycontrol.com+OR+site:economictimes.indiatimes.com+OR+site:business-standard.com"
     feed = feedparser.parse(url)
-    news_items = []
+    news_list = []
 
-    for i, entry in enumerate(feed.entries[:top_n]):
+    for idx, entry in enumerate(feed.entries[:top_n], start=1):
         title = entry.title
         link = shorten_url(entry.link)
-        source = entry.get("source", {}).get("title", "")
-        published = format_pub_date(entry)
-        news_items.append(f"{i+1}️⃣ {title} — {source or entry.link.split('/')[2]}\n_Read more:_ {link}\n🕒 Published: {published}\n")
-
-    return news_items
-
-
-def send_telegram_message(message):
-    """Send formatted message to Telegram"""
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {
-        "chat_id": CHAT_ID,
-        "text": message,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": False
-    }
-    try:
-        r = requests.post(url, data=payload, timeout=10)
-        if r.ok:
-            print("✅ Message sent successfully!")
+        # Detect source
+        source_name = getattr(entry, "source", None)
+        if source_name:
+            source_name = source_name.title
         else:
-            print(f"⚠️ Telegram error: {r.json()}")
-    except Exception as e:
-        print(f"⚠️ Send error: {e}")
+            # fallback: detect from link
+            if "moneycontrol" in entry.link:
+                source_name = "Moneycontrol"
+            elif "economictimes" in entry.link:
+                source_name = "Economic Times"
+            elif "business-standard" in entry.link:
+                source_name = "Business Standard"
+            else:
+                source_name = "Unknown"
 
-
-# ---------- MAIN ----------
-def main():
-    print("🚀 Fetching live financial news...\n")
-
-    for topic in STOCKS + TOPICS:
-        emoji = SECTION_EMOJIS.get(topic, "📰")
-        news_list = fetch_news(topic)
-        if news_list:
-            header = f"{emoji} <b>{topic.upper()}</b> — Top 3 News\n"
-            message = header + "\n".join(news_list)
+        # Published time
+        published = getattr(entry, "published", None)
+        if published and hasattr(entry, "published_parsed"):
+            published_dt = datetime(*entry.published_parsed[:6])
+            published_str = published_dt.strftime("%d-%m-%Y %I:%M %p")
         else:
-            message = f"⚠️ No recent news found for <b>{topic.upper()}</b>\n"
+            published_str = "Unknown"
 
-        send_telegram_message(message)
+        news_item = f"{idx}️⃣ {title} — {source_name}\n_Read more:_ {link}\n🕒 Published: {published_str}"
+        news_list.append(news_item)
 
+    return news_list
 
-if __name__ == "__main__":
-    main()
-    
