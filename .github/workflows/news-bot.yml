@@ -2,8 +2,8 @@ name: Automated Financial News Bot
 
 on:
   schedule:
-    # Every hour
-    - cron: '0 * * * *'
+    # Every 2 hours
+    - cron: '0 */2 * * *'
   workflow_dispatch: # allows manual run from GitHub Actions tab
   push:
     branches: [ main, master ] # trigger on push to activate workflow
