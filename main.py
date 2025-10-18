@@ -5,28 +5,27 @@ from datetime import datetime
 import pytz
 import os
 import time
+import json
 
 # ---------- CONFIG ----------
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-STOCKS = [
-    "Saatvik Green Energy",
-    "Avantel",
-    "Suzlon",
-    "IOB Bank",
-    "Eternal"
-]
+# Load stocks and topics from config file
+def load_config():
+    """Load stocks and topics from config.json"""
+    try:
+        with open('config.json', 'r') as f:
+            config = json.load(f)
+        return config.get('stocks', []), config.get('topics', [])
+    except FileNotFoundError:
+        print("⚠️ config.json not found, using default values")
+        return [], []
+    except json.JSONDecodeError:
+        print("⚠️ Invalid JSON in config.json, using default values")
+        return [], []
 
-TOPICS = [
-    "Stock Market",
-    "World Market",
-    "Results",
-    "Political",
-    "Geopolitical",
-    "Sector",
-    "Economy"
-]
+STOCKS, TOPICS = load_config()
 
 # ---------- EMOJIS FOR SECTIONS ----------
 SECTION_EMOJIS = {
