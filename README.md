@@ -220,11 +220,7 @@ Want to make this bot even better? Here's how:
 4. 📤 Push to branch (`git push origin feature/amazing-feature`)
 5. 🔄 Open a Pull Request
 
-## 📄 License
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
-
----
 
 ## 🙏 Acknowledgments
 
@@ -240,7 +236,6 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 Having issues? Need help customizing? 
 
 - 🐛 **Bug Reports**: [Open an Issue](https://github.com/mohitsonu/Automated-Financial-News/issues)
-- 💡 **Feature Requests**: [Start a Discussion](https://github.com/mohitsonu/Automated-Financial-News/discussions)
 - 📧 **Direct Contact**: [mohitsonu33@gmail.com](mailto:mohitsonu33@gmail.com)
 
 ---
