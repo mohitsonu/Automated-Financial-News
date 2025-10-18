@@ -253,8 +253,7 @@ Having issues? Need help customizing?
 
 **Made with ❤️ for the financial community**
 
-[![⭐ Star this repo](https://img.shields.io/github/stars/yourusername/repo?style=social)](https://github.com/yourusername/repo)
-[![🍴 Fork this repo](https://img.shields.io/github/forks/yourusername/repo?style=social)](https://github.com/yourusername/repo/fork)
+
 
 </div>
 
