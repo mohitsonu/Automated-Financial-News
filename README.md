@@ -220,11 +220,9 @@ Want to make this bot even better? Here's how:
 4. 📤 Push to branch (`git push origin feature/amazing-feature`)
 5. 🔄 Open a Pull Request
 
----
+## 📄 License
 
----
-
-
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -242,8 +240,8 @@ Want to make this bot even better? Here's how:
 Having issues? Need help customizing? 
 
 - 🐛 **Bug Reports**: [Open an Issue](https://github.com/mohitsonu/Automated-Financial-News/issues)
-
-- 📧 **Direct Contact**: [mohitsonu@example.com](mailto:mohitsonu33@gmail.com)
+- 💡 **Feature Requests**: [Start a Discussion](https://github.com/mohitsonu/Automated-Financial-News/discussions)
+- 📧 **Direct Contact**: [mohitsonu33@gmail.com](mailto:mohitsonu33@gmail.com)
 
 ---
 
@@ -253,12 +251,8 @@ Having issues? Need help customizing?
 
 **Made with ❤️ for the financial community**
 
-<<<<<<< HEAD
 [![⭐ Star this repo](https://img.shields.io/github/stars/mohitsonu/Automated-Financial-News?style=social)](https://github.com/mohitsonu/Automated-Financial-News)
 [![🍴 Fork this repo](https://img.shields.io/github/forks/mohitsonu/Automated-Financial-News?style=social)](https://github.com/mohitsonu/Automated-Financial-News/fork)
-=======
-
->>>>>>> a466ac518bf0121f49483259ad2495d45a39789b
 
 </div>
 
