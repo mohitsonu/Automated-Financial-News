@@ -224,9 +224,7 @@ Want to make this bot even better? Here's how:
 
 ---
 
-## � Likcense
 
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -255,8 +253,12 @@ Having issues? Need help customizing?
 
 **Made with ❤️ for the financial community**
 
+<<<<<<< HEAD
 [![⭐ Star this repo](https://img.shields.io/github/stars/mohitsonu/Automated-Financial-News?style=social)](https://github.com/mohitsonu/Automated-Financial-News)
 [![🍴 Fork this repo](https://img.shields.io/github/forks/mohitsonu/Automated-Financial-News?style=social)](https://github.com/mohitsonu/Automated-Financial-News/fork)
+=======
+
+>>>>>>> a466ac518bf0121f49483259ad2495d45a39789b
 
 </div>
 
