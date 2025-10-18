@@ -97,6 +97,7 @@ def send_telegram_message(message):
 
 
 # ---------- MAIN ----------
+# ---------- MAIN ----------
 def main():
     print("🚀 Fetching live financial news...\n")
 
@@ -110,6 +111,9 @@ def main():
             message = f"⚠️ No recent news found for <b>{topic.upper()}</b>\n"
 
         send_telegram_message(message)
+        print(f"⏳ Waiting 30 seconds before sending next topic...")
+        time.sleep(30)  # <-- 30-second gap between messages
+
 
 
 if __name__ == "__main__":
