@@ -29,7 +29,7 @@ This intelligent bot automatically fetches and delivers **curated financial news
 
 ### 1️⃣ **Clone & Setup**
 ```bash
-git clone https://github.com/yourusername/Automated-Financial-News.git
+git clone https://github.com/mohitsonu/Automated-Financial-News.git
 cd Automated-Financial-News
 pip install -r requirements.txt
 ```
@@ -222,9 +222,11 @@ Want to make this bot even better? Here's how:
 
 ---
 
-## 📄 License
+---
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## � Likcense
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -241,9 +243,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Having issues? Need help customizing? 
 
-- 🐛 **Bug Reports**: [Open an Issue](https://github.com/yourusername/repo/issues)
-- 💡 **Feature Requests**: [Start a Discussion](https://github.com/yourusername/repo/discussions)
-- 📧 **Direct Contact**: [your-email@example.com](mailto:your-email@example.com)
+- 🐛 **Bug Reports**: [Open an Issue](https://github.com/mohitsonu/Automated-Financial-News/issues)
+
+- 📧 **Direct Contact**: [mohitsonu@example.com](mailto:mohitsonu33@gmail.com)
 
 ---
 
@@ -253,8 +255,8 @@ Having issues? Need help customizing?
 
 **Made with ❤️ for the financial community**
 
-[![⭐ Star this repo](https://img.shields.io/github/stars/yourusername/repo?style=social)](https://github.com/yourusername/repo)
-[![🍴 Fork this repo](https://img.shields.io/github/forks/yourusername/repo?style=social)](https://github.com/yourusername/repo/fork)
+[![⭐ Star this repo](https://img.shields.io/github/stars/mohitsonu/Automated-Financial-News?style=social)](https://github.com/mohitsonu/Automated-Financial-News)
+[![🍴 Fork this repo](https://img.shields.io/github/forks/mohitsonu/Automated-Financial-News?style=social)](https://github.com/mohitsonu/Automated-Financial-News/fork)
 
 </div>
 
