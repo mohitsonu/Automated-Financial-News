@@ -1,5 +1,6 @@
 name: Automated Financial News Bot
 
+
 on:
   schedule:
     # Every 4 hours - fully automated, no interference
