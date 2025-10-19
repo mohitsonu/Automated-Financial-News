@@ -2,11 +2,9 @@ name: Automated Financial News Bot
 
 on:
   schedule:
-    #  Every 4 hours, updates will appear in a day 
+    # Every 4 hours - fully automated, no interference
     - cron: '0 */4 * * *'
-  workflow_dispatch: # allows manual run from GitHub Actions tab
-  push:
-    branches: [ main, master ] # trigger on push to activate workflow
+  workflow_dispatch: # allows manual run from GitHub Actions tab (emergency only)
 
 jobs:
   run-bot:
