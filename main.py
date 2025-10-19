@@ -96,7 +96,7 @@ def send_telegram_message(message):
         print(f"⚠️ Send error: {e}")
 
 
-# ---------- MAIN ----------
+
 # ---------- MAIN ----------
 def main():
     print("🚀 Fetching live financial news...\n")
