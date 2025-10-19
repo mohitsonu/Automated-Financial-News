@@ -1,9 +1,8 @@
 name: Automated Financial News Bot
 
-
 on:
   schedule:
-    # Every 4 hours - fully automated, no interference
+    # Every 4 hours - fully automated, no interference (updated)
     - cron: '0 */4 * * *'
   workflow_dispatch: # allows manual run from GitHub Actions tab (emergency only)
 
