@@ -1,7 +1,7 @@
 import feedparser
 import requests
 from urllib.parse import quote_plus
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import os
 import time
@@ -60,14 +60,32 @@ def format_pub_date(entry):
         return "Unknown time"
 
 
+def is_recent_news(entry, days_back=2):
+    """Check if news is from last 2 days"""
+    try:
+        if not hasattr(entry, 'published_parsed') or not entry.published_parsed:
+            return False
+        
+        news_date = datetime(*entry.published_parsed[:6])
+        current_date = datetime.now()
+        cutoff_date = current_date - timedelta(days=days_back)
+        
+        return news_date >= cutoff_date
+    except Exception:
+        return False
+
+
 def fetch_news(term, top_n=3):
-    """Fetch top N latest Google News headlines"""
+    """Fetch top N latest Google News headlines (only recent news)"""
     encoded_term = quote_plus(term)
     url = f"https://news.google.com/rss/search?q={encoded_term}+site:moneycontrol.com+OR+site:economictimes.indiatimes.com+OR+site:business-standard.com"
     feed = feedparser.parse(url)
     news_items = []
-
-    for i, entry in enumerate(feed.entries[:top_n]):
+    
+    # Filter for recent news only
+    recent_entries = [entry for entry in feed.entries if is_recent_news(entry)]
+    
+    for i, entry in enumerate(recent_entries[:top_n]):
         title = entry.title
         link = shorten_url(entry.link)
         source = entry.get("source", {}).get("title", "")
