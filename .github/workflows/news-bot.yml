@@ -2,8 +2,8 @@ name: Automated Financial News Bot
 
 on:
   schedule:
-    # Every 4 hours - perfect for active traders
-    - cron: '0 */4 * * *'
+    # Every 6 hours - perfect for active traders
+    - cron: '0 */6 * * *'
   workflow_dispatch: # allows manual run from GitHub Actions tab (emergency only)
 
 jobs:
