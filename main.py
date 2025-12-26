@@ -7,30 +7,31 @@ import os
 import time
 import json
 
-# ---------- CONFIG ----------
+# Bot credentials
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-# Load stocks and topics from config file
 def load_config():
-    """Load stocks and topics from config.json"""
+    # Load my custom stocks and topics
     try:
-        with open('config.json', 'r') as f:
-            config = json.load(f)
-        return config.get('stocks', []), config.get('topics', [])
+        with open('config.json', 'r') as file:
+            data = json.load(file)
+        stocks = data.get('stocks', [])
+        topics = data.get('topics', [])
+        return stocks, topics
     except FileNotFoundError:
-        print("⚠️ config.json not found, using default values")
+        print("Config file missing! Using defaults...")
         return [], []
-    except json.JSONDecodeError:
-        print("⚠️ Invalid JSON in config.json, using default values")
+    except:
+        print("Error reading config file")
         return [], []
 
-STOCKS, TOPICS = load_config()
+my_stocks, my_topics = load_config()
 
-# ---------- EMOJIS FOR SECTIONS ----------
-SECTION_EMOJIS = {
+# Different emojis for different news categories
+emojis = {
     "Stock Market": "💹",
-    "World Market": "🌎",
+    "World Market": "🌎", 
     "Results": "📝",
     "Political": "🏛️",
     "Geopolitical": "🗺️",
@@ -38,102 +39,103 @@ SECTION_EMOJIS = {
     "Economy": "📊"
 }
 
-# ---------- HELPERS ----------
-def shorten_url(url):
-    """Shorten URLs using TinyURL API"""
+def make_url_short(url):
+    # Using tinyurl to make links shorter
     try:
-        resp = requests.get(f"http://tinyurl.com/api-create.php?url={url}", timeout=10)
-        if resp.ok:
-            return resp.text
-    except Exception:
+        response = requests.get(f"http://tinyurl.com/api-create.php?url={url}", timeout=10)
+        if response.status_code == 200:
+            return response.text
+    except:
         pass
     return url
 
 
-def format_pub_date(entry):
-    """Convert entry.published to readable IST format"""
+def convert_to_ist(entry):
+    # Convert published time to IST
     try:
-        utc_time = datetime(*entry.published_parsed[:6])
-        ist = pytz.timezone("Asia/Kolkata")
-        return utc_time.astimezone(ist).strftime("%d-%m-%Y %I:%M %p")
-    except Exception:
-        return "Unknown time"
+        utc_dt = datetime(*entry.published_parsed[:6])
+        ist_tz = pytz.timezone("Asia/Kolkata")
+        ist_dt = utc_dt.astimezone(ist_tz)
+        return ist_dt.strftime("%d-%m-%Y %I:%M %p")
+    except:
+        return "Time not available"
 
-
-def is_recent_news(entry, days_back=2):
-    """Check if news is from last 2 days"""
+def check_if_recent(entry, days=2):
+    # Only show news from last 2 days
     try:
-        if not hasattr(entry, 'published_parsed') or not entry.published_parsed:
+        if not entry.published_parsed:
             return False
         
-        news_date = datetime(*entry.published_parsed[:6])
-        current_date = datetime.now()
-        cutoff_date = current_date - timedelta(days=days_back)
+        news_time = datetime(*entry.published_parsed[:6])
+        now = datetime.now()
+        cutoff = now - timedelta(days=days)
         
-        return news_date >= cutoff_date
-    except Exception:
+        return news_time >= cutoff
+    except:
         return False
 
 
-def fetch_news(term, top_n=3):
-    """Fetch top N latest Google News headlines (only recent news)"""
-    encoded_term = quote_plus(term)
-    url = f"https://news.google.com/rss/search?q={encoded_term}+site:moneycontrol.com+OR+site:economictimes.indiatimes.com+OR+site:business-standard.com"
-    feed = feedparser.parse(url)
-    news_items = []
+def get_news_for_topic(search_term, count=3):
+    # Get news from Google RSS feed
+    search_query = quote_plus(search_term)
+    rss_url = f"https://news.google.com/rss/search?q={search_query}+site:moneycontrol.com+OR+site:economictimes.indiatimes.com+OR+site:business-standard.com"
     
-    # Filter for recent news only
-    recent_entries = [entry for entry in feed.entries if is_recent_news(entry)]
+    feed = feedparser.parse(rss_url)
+    news_list = []
     
-    for i, entry in enumerate(recent_entries[:top_n]):
-        title = entry.title
-        link = shorten_url(entry.link)
-        source = entry.get("source", {}).get("title", "")
-        published = format_pub_date(entry)
-        news_items.append(f"{i+1}️⃣ {title} — {source or entry.link.split('/')[2]}\n_Read more:_ {link}\n🕒 Published: {published}\n")
+    # Filter recent news only
+    recent_news = [item for item in feed.entries if check_if_recent(item)]
+    
+    for idx, item in enumerate(recent_news[:count]):
+        headline = item.title
+        url = make_url_short(item.link)
+        source = item.get("source", {}).get("title", "")
+        pub_time = convert_to_ist(item)
+        
+        news_item = f"{idx+1}️⃣ {headline} — {source or item.link.split('/')[2]}\n_Read more:_ {url}\n🕒 Published: {pub_time}\n"
+        news_list.append(news_item)
 
-    return news_items
+    return news_list
 
 
-def send_telegram_message(message):
-    """Send formatted message to Telegram"""
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-    payload = {
+def send_to_telegram(msg):
+    # Send message to my telegram chat
+    api_url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = {
         "chat_id": CHAT_ID,
-        "text": message,
+        "text": msg,
         "parse_mode": "HTML",
         "disable_web_page_preview": False
     }
+    
     try:
-        r = requests.post(url, data=payload, timeout=10)
-        if r.ok:
-            print("✅ Message sent successfully!")
+        response = requests.post(api_url, data=data, timeout=10)
+        if response.ok:
+            print("Message sent successfully!")
         else:
-            print(f"⚠️ Telegram error: {r.json()}")
+            print(f"Telegram API error: {response.json()}")
     except Exception as e:
-        print(f"⚠️ Send error: {e}")
+        print(f"Failed to send message: {e}")
 
+def run_bot():
+    print("Starting financial news bot...\n")
 
-
-# ---------- MAIN ----------
-def main():
-    print("🚀 Fetching live financial news...\n")
-
-    for topic in STOCKS + TOPICS:
-        emoji = SECTION_EMOJIS.get(topic, "📰")
-        news_list = fetch_news(topic)
-        if news_list:
-            header = f"{emoji} <b>{topic.upper()}</b> — Top 3 News\n"
-            message = header + "\n".join(news_list)
+    all_topics = my_stocks + my_topics
+    
+    for topic in all_topics:
+        topic_emoji = emojis.get(topic, "�")
+        news_items = get_news_for_topic(topic)
+        
+        if news_items:
+            header = f"{topic_emoji} <b>{topic.upper()}</b> — Top 3 News\n"
+            full_message = header + "\n".join(news_items)
         else:
-            message = f"⚠️ No recent news found for <b>{topic.upper()}</b>\n"
+            full_message = f"⚠️ No recent news found for <b>{topic.upper()}</b>\n"
 
-        send_telegram_message(message)
-        print(f"⏳ Waiting 30 seconds before sending next topic...")
-        time.sleep(30)  # <-- 30-second gap between messages
-
-
+        send_to_telegram(full_message)
+        print(f"Sent news for {topic}, waiting 30 seconds...")
+        time.sleep(30)  # Wait between messages
 
 if __name__ == "__main__":
-    main()
+    run_bot()
     

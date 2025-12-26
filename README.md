@@ -237,6 +237,7 @@ Having issues? Need help customizing?
 
 - 🐛 **Bug Reports**: [Open an Issue](https://github.com/mohitsonu/Automated-Financial-News/issues)
 - 📧 **Direct Contact**: [mohitsonu33@gmail.com](mailto:mohitsonu33@gmail.com)
+- 💬 **Join our Telegram Group**: [Financial News Discussion](https://t.me/+xdc0gly07a4xNzA1)
 
 ---
 
