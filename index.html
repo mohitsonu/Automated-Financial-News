@@ -438,4 +438,51 @@ function MemberDashboard({user,onLogout}) {
 const navStyles = {
   tab:{background:'transparent',border:'none',color:'var(--text2)',cursor:'pointer',padding:'8px 16px',borderRadius:8,fontSize:13,fontWeight:500,display:'flex',alignItems:'center',gap:6,transition:'all 0.15s'},
   tabActive:{background:'var(--bg3)',color:'var(--text)',fontWeight:600},
-  badge:{background:'var(--bg3)',color:'var(--text3)',fontSize:11,padding:'1px 7
+  badge:{background:'var(--bg3)',color:'var(--text3)',fontSize:11,padding:'1px 7px',borderRadius:8,marginLeft:8},
+  addBtn:{background:'var(--goldg)',border:'none',color:'#080b0f',padding:'8px 12px',borderRadius:8,cursor:'pointer',fontWeight:700},
+  logoutBtn:{background:'transparent',border:'1px solid var(--border)',borderRadius:8,padding:'8px 12px',color:'var(--text2)',cursor:'pointer'},
+};
+
+/* ── Lightweight missing components (placeholders) ───────────────── */
+function Logo({size=28,center=false}){return <div style={{width:size,height:size,display:'inline-flex',alignItems:'center',justifyContent:'center,fontWeight:700',borderRadius:6,background:'var(--bg3)',color:'var(--gold)',fontSize:Math.max(10,Math.round(size/3))}}>IKT</div>}
+function Field({label,children}){return (<label style={{display:'block',fontSize:12,color:'var(--text2)'}}><div style={{marginBottom:6,fontSize:12}}>{label}</div>{children}</label>)}
+function InstaIcon(){return <span style={{fontSize:14}}>📷</span>}
+
+function SignalGrid({signals,type,isAdmin,onEdit,onDelete}){
+  return (<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>{signals.map(s=>(<div key={s.id}><SampleSignalCard {...s} type={type==='swing'?'swing':'longterm'} /><div style={{display:'flex',gap:8,marginTop:8}}>{isAdmin&&<button onClick={()=>onEdit&&onEdit(s)} style={{padding:'6px 8px',borderRadius:6,border:'1px solid var(--border)'}}>Edit</button>}<button onClick={()=>onDelete&&onDelete(s.id)} style={{padding:'6px 8px',borderRadius:6,border:'1px solid var(--border)'}}>Delete</button></div></div>))}</div>)}
+
+function PnLChart(){return <div style={{background:'var(--bg3)',padding:20,borderRadius:12,border:'1px solid var(--border)'}}>P&L Chart (placeholder)</div>}
+
+function AdminPanel({users,onAddUser,onToggleUser,onDeleteUser,onEditSignal,onDeleteSignal}){
+  return (<div>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+      <h3>Manage Users</h3>
+      <div><button onClick={onAddUser} style={{padding:'8px 12px',borderRadius:8,background:'var(--goldg)',border:'none'}}>+ Add User</button></div>
+    </div>
+    <div style={{display:'grid',gap:8}}>{users.map(u=>(<div key={u.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:10,background:'var(--bg2)',border:'1px solid var(--border)',borderRadius:8}}><div><div style={{fontWeight:700}}>{u.name}</div><div style={{fontSize:12,color:'var(--text2)'}}>@{u.username} · {u.role}</div></div><div style={{display:'flex',gap:8}}><button onClick={()=>onToggleUser(u.id)} style={{padding:'6px 8px'}}>{u.active?'Deactivate':'Activate'}</button><button onClick={()=>onDeleteUser(u.id)} style={{padding:'6px 8px'}}>Delete</button></div></div>))}</div>
+  </div>)}
+
+function SignalModal(){return null}
+function UserModal(){return null}
+
+/* ── App mount ─────────────────────────────────────────────────── */
+function App(){
+  const [view,setView]=useState('landing');
+  const [user,setUser]=useState(null);
+  const onLogin = ()=>setView('login');
+  const onLoginSuccess = u=>{setUser(u);setView('dashboard');};
+  const onLogout = ()=>{setUser(null);setView('landing');};
+  return (
+    <div>
+      {view==='landing'&&<LandingPage onLogin={onLogin}/>} 
+      {view==='login'&&<LoginPage onBack={()=>setView('landing')} onLoginSuccess={onLoginSuccess}/>}
+      {view==='dashboard'&&user&&<MemberDashboard user={user} onLogout={onLogout}/>} 
+    </div>
+  );
+}
+
+const rootEl = document.getElementById('root');
+if(rootEl && ReactDOM?.createRoot){ReactDOM.createRoot(rootEl).render(<App/>);}else if(rootEl){ReactDOM.render(<App/>,rootEl);} 
+</script>
+</body>
+</html>
