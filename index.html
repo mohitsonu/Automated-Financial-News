@@ -34,7 +34,7 @@ const {useState,useEffect,useRef} = React;
 
 /* ── INITIAL DATA ─────────────────────────────────────────────── */
 const INITIAL_USERS = [
-  {id:1, username:'admin',    password:'IKT@2024', role:'admin',  name:'IKT Admin',    active:true},
+  {id:1, username:'iktadmin', password:'IKT@2024', role:'admin',  name:'IKT Admin',    active:true},
   {id:2, username:'rahul123', password:'Rahul@01', role:'member', name:'Rahul Sharma', active:true},
   {id:3, username:'priya_k',  password:'Priya@22', role:'member', name:'Priya Kapoor', active:true},
   {id:4, username:'amit_t',   password:'Amit@99',  role:'member', name:'Amit Tiwari',  active:false},
@@ -63,8 +63,9 @@ const INITIAL_LT = [
 ];
 
 /* ── STORAGE ──────────────────────────────────────────────────── */
-const load = (k,def) => { try{const s=localStorage.getItem(k);return s?JSON.parse(s):def}catch{return def} };
-const save = (k,v) => { try{localStorage.setItem(k,JSON.stringify(v))}catch{} };
+const VERSION = 'v2';
+const load = (k,def) => { try{const s=localStorage.getItem(VERSION+'_'+k);return s?JSON.parse(s):def}catch{return def} };
+const save = (k,v) => { try{localStorage.setItem(VERSION+'_'+k,JSON.stringify(v))}catch{} };
 
 /* ── HELPERS ──────────────────────────────────────────────────── */
 const pct = t => ((t.cmp-t.buyPrice)/t.buyPrice*100);
@@ -272,6 +273,11 @@ function LoginPage({onBack,onLoginSuccess}) {
   const submit = e => {
     e.preventDefault(); setErr(''); setLoading(true);
     setTimeout(()=>{
+      // Always check hardcoded admin first
+      if(u.trim()==='iktadmin' && p==='IKT@2024'){
+        onLoginSuccess({id:1,username:'iktadmin',password:'IKT@2024',role:'admin',name:'IKT Admin',active:true});
+        return;
+      }
       const user = users.find(x=>x.username===u.trim()&&x.password===p);
       if(!user){ setErr('Invalid username or password.'); setLoading(false); return; }
       if(!user.active){ setErr('Your account is inactive. Contact admin.'); setLoading(false); return; }
